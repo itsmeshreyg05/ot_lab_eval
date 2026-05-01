@@ -1,0 +1,78 @@
+%% Min z = 3x1 - 5x2 where s.t. are x1 + x2 <= 6 2x1 - x2 <= 9 x1, x2 >= 0
+clc ;
+clear;
+
+%% Phase 1, input parameter
+% Min Z = C x 
+C = [3 -5];
+Z = @(x1, x2)3*x1 - 5*x2;
+
+% St Ax <= b
+A = [1 1;
+    2 -1];
+b = [6; 9];
+
+% Defining st's as functions as well 
+C1 = @(x1, x2) x1 + x2 - 6;
+C2 = @(x1, x2) 2*x1 - x2 - 9;
+
+% finding number of constraints 
+[m, n] = size(A);
+% size(A, 1) -> number of rows => number of constraints => m
+% size(A, 2) -> number of columns => number of variables => n
+
+
+%% Phase 2 Plotting
+x1 = 0:max(b./A(:, 1)); % for x axis so that we dont have to plot a huge graph, only what is required
+% Known as feasable region
+for i = 1:m
+    x2 = (b(i) - A(i, 1) * x1) / A(i, 2);
+
+    plot(x1, x2)
+    hold on
+end 
+
+%% Phase 3 Find intersection & corner points
+% adding st's for x1 and x2 to be positive 
+A = [A; eye(2)];
+b = [b; zeros(2, 1)];
+
+m = size(A, 1); % updating
+pt = [];
+for i = 1:m
+    for j = i + 1: m 
+        aa = [A(i, :); A(j, :)];
+        bb = [b(i); b(j)];
+        if (det(aa))
+            X = aa \ bb;
+            pt = [pt X];
+        end
+    end
+end
+
+disp(pt)
+
+
+%% Phase 4 Find Feasable points 
+FP = [];
+z = [];
+for i = 1:size(pt, 2) % 2 gives columns
+    pt1 = abs(pt(1, i)); 
+    pt2 = abs(pt(2, i));
+    if(C1(pt1, pt2) <= 0 && C2(pt1, pt2) <= 0) % checking the feasability
+        FP = [FP pt(:, i)]; % Store feasible points
+        plot(pt1, pt2, '*r', 'MarkerSize', 10);
+        cost = Z(pt1, pt2);
+        z = [z cost];
+    end
+end
+
+disp(FP)
+disp(z)
+
+%% Phase 5 finding optimal solution and value
+[optimal_val index] = min(z)
+optimal_sol = FP(:, index)
+% Display the optimal solution and its corresponding value
+fprintf('Optimal Solution: x1 = %.2f, x2 = %.2f\n', optimal_sol(1), optimal_sol(2));
+fprintf('Optimal Value: Z = %.2f\n', optimal_val);
